@@ -1,0 +1,484 @@
+{
+  "header": {
+    "gtfs_realtime_version": "2.0",
+    "timestamp": 1776279138
+  },
+  "entity": [
+    {
+      "id": "veh-3-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "3",
+          "trip_id": "demo-3-01"
+        },
+        "vehicle": {
+          "id": "veh-3-01"
+        },
+        "position": {
+          "progress": 0.08,
+          "progressRate": 0.0007
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-8-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "8",
+          "trip_id": "demo-8-01"
+        },
+        "vehicle": {
+          "id": "veh-8-01"
+        },
+        "position": {
+          "progress": 0.222,
+          "progressRate": 0.00078
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-9-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "9",
+          "trip_id": "demo-9-01"
+        },
+        "vehicle": {
+          "id": "veh-9-01"
+        },
+        "position": {
+          "progress": 0.364,
+          "progressRate": 0.00086
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-11-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "11",
+          "trip_id": "demo-11-01"
+        },
+        "vehicle": {
+          "id": "veh-11-01"
+        },
+        "position": {
+          "progress": 0.506,
+          "progressRate": 0.00094
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-27-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "27",
+          "trip_id": "demo-27-01"
+        },
+        "vehicle": {
+          "id": "veh-27-01"
+        },
+        "position": {
+          "progress": 0.647,
+          "progressRate": 0.00102
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-31-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "31",
+          "trip_id": "demo-31-01"
+        },
+        "vehicle": {
+          "id": "veh-31-01"
+        },
+        "position": {
+          "progress": 0.789,
+          "progressRate": 0.0007
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-32-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "32",
+          "trip_id": "demo-32-01"
+        },
+        "vehicle": {
+          "id": "veh-32-01"
+        },
+        "position": {
+          "progress": 0.111,
+          "progressRate": 0.00078
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-45-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "45",
+          "trip_id": "demo-45-01"
+        },
+        "vehicle": {
+          "id": "veh-45-01"
+        },
+        "position": {
+          "progress": 0.253,
+          "progressRate": 0.00086
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-51-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "51",
+          "trip_id": "demo-51-01"
+        },
+        "vehicle": {
+          "id": "veh-51-01"
+        },
+        "position": {
+          "progress": 0.395,
+          "progressRate": 0.00094
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-52-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "52",
+          "trip_id": "demo-52-01"
+        },
+        "vehicle": {
+          "id": "veh-52-01"
+        },
+        "position": {
+          "progress": 0.537,
+          "progressRate": 0.00102
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-53-O-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "53-O",
+          "trip_id": "demo-53-O-01"
+        },
+        "vehicle": {
+          "id": "veh-53-O-01"
+        },
+        "position": {
+          "progress": 0.679,
+          "progressRate": 0.0007
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-55-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "55",
+          "trip_id": "demo-55-01"
+        },
+        "vehicle": {
+          "id": "veh-55-01"
+        },
+        "position": {
+          "progress": 0.82,
+          "progressRate": 0.00078
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-57-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "57",
+          "trip_id": "demo-57-01"
+        },
+        "vehicle": {
+          "id": "veh-57-01"
+        },
+        "position": {
+          "progress": 0.142,
+          "progressRate": 0.00086
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-61-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "61",
+          "trip_id": "demo-61-01"
+        },
+        "vehicle": {
+          "id": "veh-61-01"
+        },
+        "position": {
+          "progress": 0.284,
+          "progressRate": 0.00094
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-62-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "62",
+          "trip_id": "demo-62-01"
+        },
+        "vehicle": {
+          "id": "veh-62-01"
+        },
+        "position": {
+          "progress": 0.426,
+          "progressRate": 0.00102
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-62-O-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "62-O",
+          "trip_id": "demo-62-O-01"
+        },
+        "vehicle": {
+          "id": "veh-62-O-01"
+        },
+        "position": {
+          "progress": 0.568,
+          "progressRate": 0.0007
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-66-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "66",
+          "trip_id": "demo-66-01"
+        },
+        "vehicle": {
+          "id": "veh-66-01"
+        },
+        "position": {
+          "progress": 0.71,
+          "progressRate": 0.00078
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-67-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "67",
+          "trip_id": "demo-67-01"
+        },
+        "vehicle": {
+          "id": "veh-67-01"
+        },
+        "position": {
+          "progress": 0.852,
+          "progressRate": 0.00086
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-68-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "68",
+          "trip_id": "demo-68-01"
+        },
+        "vehicle": {
+          "id": "veh-68-01"
+        },
+        "position": {
+          "progress": 0.173,
+          "progressRate": 0.00094
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-80-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "80",
+          "trip_id": "demo-80-01"
+        },
+        "vehicle": {
+          "id": "veh-80-01"
+        },
+        "position": {
+          "progress": 0.315,
+          "progressRate": 0.00102
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-84-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "84",
+          "trip_id": "demo-84-01"
+        },
+        "vehicle": {
+          "id": "veh-84-01"
+        },
+        "position": {
+          "progress": 0.457,
+          "progressRate": 0.0007
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-86-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "86",
+          "trip_id": "demo-86-01"
+        },
+        "vehicle": {
+          "id": "veh-86-01"
+        },
+        "position": {
+          "progress": 0.599,
+          "progressRate": 0.00078
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-91-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "91",
+          "trip_id": "demo-91-01"
+        },
+        "vehicle": {
+          "id": "veh-91-01"
+        },
+        "position": {
+          "progress": 0.741,
+          "progressRate": 0.00086
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-103-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "103",
+          "trip_id": "demo-103-01"
+        },
+        "vehicle": {
+          "id": "veh-103-01"
+        },
+        "position": {
+          "progress": 0.883,
+          "progressRate": 0.00094
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-105-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "105",
+          "trip_id": "demo-105-01"
+        },
+        "vehicle": {
+          "id": "veh-105-01"
+        },
+        "position": {
+          "progress": 0.205,
+          "progressRate": 0.00102
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-114A-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "114A",
+          "trip_id": "demo-114A-01"
+        },
+        "vehicle": {
+          "id": "veh-114A-01"
+        },
+        "position": {
+          "progress": 0.346,
+          "progressRate": 0.0007
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-114B-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "114B",
+          "trip_id": "demo-114B-01"
+        },
+        "vehicle": {
+          "id": "veh-114B-01"
+        },
+        "position": {
+          "progress": 0.488,
+          "progressRate": 0.00078
+        },
+        "timestamp": 1776279138
+      }
+    },
+    {
+      "id": "veh-202-01",
+      "vehicle": {
+        "trip": {
+          "route_id": "202",
+          "trip_id": "demo-202-01"
+        },
+        "vehicle": {
+          "id": "veh-202-01"
+        },
+        "position": {
+          "progress": 0.63,
+          "progressRate": 0.00086
+        },
+        "timestamp": 1776279138
+      }
+    }
+  ]
+}

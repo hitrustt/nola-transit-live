@@ -1,0 +1,323 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap');
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: 'Public Sans', sans-serif;
+  background-color: #ece9e3;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #ece9e3;
+  color: #0f172a;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: #efede8;
+  font-family: 'Public Sans', sans-serif;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 10px 26px rgba(5, 15, 26, 0.18) !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #722c88 !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  border-radius: 0 !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgba(255, 252, 245, 0.96);
+  color: #111827;
+}
+
+.font-heading {
+  font-family: 'Archivo', sans-serif;
+}
+
+.panel-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(114, 44, 136, 0.45) transparent;
+}
+
+.panel-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 0;
+  background: rgba(114, 44, 136, 0.38);
+}
+
+.mobile-sheet {
+  display: flex;
+  max-height: min(48dvh, 34rem);
+  min-height: 19rem;
+  flex-direction: column;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -14px 34px rgba(15, 23, 42, 0.2);
+}
+
+.mobile-sheet--collapsed {
+  max-height: 5.5rem;
+  min-height: 5.5rem;
+}
+
+.mobile-sheet__list {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding-bottom: 0.25rem;
+}
+
+@media (max-width: 420px) {
+  .mobile-sheet {
+    max-height: min(52dvh, 36rem);
+    min-height: 17.5rem;
+  }
+
+  .mobile-sheet--collapsed {
+    max-height: 5rem;
+    min-height: 5rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .leaflet-control-zoom {
+    display: none !important;
+  }
+}
+
+.vehicle-icon-shell {
+  background: transparent;
+  border: none;
+}
+
+.vehicle-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  position: relative;
+}
+
+.vehicle-marker--active {
+  opacity: 1;
+}
+
+.vehicle-marker--dim {
+  opacity: 0.32;
+}
+
+.vehicle-marker__direction {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.vehicle-marker__pointer-outline {
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid rgba(255, 255, 255, 0.96);
+  filter:
+    drop-shadow(0 0 0.45px rgba(255, 255, 255, 0.92))
+    drop-shadow(0 1px 2px rgba(5, 15, 26, 0.22));
+}
+
+.vehicle-marker__pointer-fill {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 11px solid var(--vehicle-route);
+}
+
+.vehicle-marker__body {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  background: var(--vehicle-route);
+  box-shadow:
+    0 5px 10px rgba(5, 15, 26, 0.16),
+    0 0 0 0.75px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vehicle-marker__bus-art {
+  width: 64%;
+  height: 64%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 0.5px 0.75px rgba(15, 23, 42, 0.14));
+}
+
+.vehicle-popup {
+  min-width: 12rem;
+}
+
+.vehicle-detail-popup-shell .leaflet-popup-content-wrapper {
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+}
+
+.vehicle-detail-popup-shell .leaflet-popup-content {
+  margin: 0;
+}
+
+.vehicle-detail-popup-shell .leaflet-popup-tip {
+  background: rgba(255, 252, 245, 0.98);
+}
+
+.vehicle-detail-popup-shell--night .leaflet-popup-content-wrapper,
+.vehicle-detail-popup-shell--night .leaflet-popup-tip {
+  background: #1d1821;
+  color: #f8fafc;
+}
+
+.vehicle-detail-card {
+  min-width: 20rem;
+  padding: 0.95rem 1rem 1rem;
+}
+
+.vehicle-detail-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.vehicle-detail-card__title-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.vehicle-detail-card__route-badge {
+  display: inline-flex;
+  min-width: 1.85rem;
+  justify-content: center;
+  align-items: center;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.vehicle-detail-card__title {
+  font-family: 'Archivo', sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vehicle-detail-card__close {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+}
+
+.vehicle-detail-popup-shell--night .vehicle-detail-card__close {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.vehicle-detail-card__direction {
+  margin-top: 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+}
+
+.vehicle-detail-popup-shell--night .vehicle-detail-card__direction {
+  color: #94a3b8;
+}
+
+.vehicle-detail-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1rem;
+  margin-top: 1rem;
+}
+
+.vehicle-detail-card__span {
+  grid-column: 1 / -1;
+}
+
+.vehicle-detail-card__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+}
+
+.vehicle-detail-popup-shell--night .vehicle-detail-card__label {
+  color: #94a3b8;
+}
+
+.vehicle-detail-card__value {
+  margin-top: 0.25rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
