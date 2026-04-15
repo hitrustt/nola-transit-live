@@ -2,8 +2,6 @@
 
 New Orleans RTA Live Map is a realtime transit map for New Orleans built with Vite, React, Leaflet, and Cloudflare Pages. It renders the full route network, transfer hubs, route filtering, live vehicle positions, and map-based bus details in a single browser app.
 
-## Screenshot
-
 ![New Orleans RTA Live Map](./public/screenshot.png)
 
 ## Features
