@@ -145,9 +145,17 @@ function canonicalSegment(patternStart, patternEnd) {
   };
 }
 
+function buildRouteRankMap(routes) {
+  return new Map(
+    [...routes]
+      .sort(compareRouteOrder)
+      .map((route, index) => [route.id, index]),
+  );
+}
+
 function buildCorridorRouteMap(routes) {
   const corridorMap = new Map();
-  const routeLookup = new Map(routes.map((route) => [route.id, route]));
+  const routeRankMap = buildRouteRankMap(routes);
 
   routes.forEach((route) => {
     route.patterns.forEach((pattern) => {
@@ -166,9 +174,7 @@ function buildCorridorRouteMap(routes) {
   return new Map(
     [...corridorMap.entries()].map(([key, routeIds]) => [
       key,
-      [...routeIds].sort((routeIdA, routeIdB) =>
-        compareRouteOrder(routeLookup.get(routeIdA), routeLookup.get(routeIdB)),
-      ),
+      [...routeIds].sort((routeIdA, routeIdB) => routeRankMap.get(routeIdA) - routeRankMap.get(routeIdB)),
     ]),
   );
 }
@@ -197,6 +203,31 @@ function getRouteOffsetSpacing(zoom) {
   return 6;
 }
 
+function corridorSpacingMultiplier(routeCount) {
+  if (routeCount >= 6) {
+    return 0.58;
+  }
+
+  if (routeCount >= 4) {
+    return 0.72;
+  }
+
+  if (routeCount >= 3) {
+    return 0.84;
+  }
+
+  return 1;
+}
+
+function hasMatchingDirection(startPoint, endPoint, canonicalStart, canonicalEnd) {
+  const segmentDeltaLat = endPoint[0] - startPoint[0];
+  const segmentDeltaLng = endPoint[1] - startPoint[1];
+  const canonicalDeltaLat = canonicalEnd[0] - canonicalStart[0];
+  const canonicalDeltaLng = canonicalEnd[1] - canonicalStart[1];
+
+  return segmentDeltaLat * canonicalDeltaLat + segmentDeltaLng * canonicalDeltaLng >= 0;
+}
+
 function buildOffsetPattern(pattern, routeId, corridorRouteMap, map, zoom, offsetSpacing = 6) {
   if (pattern.length < 2) {
     return pattern;
@@ -210,15 +241,21 @@ function buildOffsetPattern(pattern, routeId, corridorRouteMap, map, zoom, offse
   const segmentOffsets = [];
 
   for (let index = 0; index < pattern.length - 1; index += 1) {
-    const corridor = canonicalSegment(pattern[index], pattern[index + 1]);
-    const routeIds = corridorRouteMap.get(corridor.key) ?? [routeId];
+    const segmentStart = pattern[index];
+    const segmentEnd = pattern[index + 1];
+    const corridor = canonicalSegment(segmentStart, segmentEnd);
+    const corridorRouteIds = corridorRouteMap.get(corridor.key) ?? [routeId];
+    const routeIds = hasMatchingDirection(segmentStart, segmentEnd, corridor.start, corridor.end)
+      ? corridorRouteIds
+      : [...corridorRouteIds].reverse();
     const routeIndex = Math.max(routeIds.indexOf(routeId), 0);
+    const spacing = offsetSpacing * corridorSpacingMultiplier(routeIds.length);
     const offsetAmount =
-      routeIds.length > 1 ? (routeIndex - (routeIds.length - 1) / 2) * offsetSpacing : 0;
-    const canonicalStart = projectLatLng(map, corridor.start, zoom);
-    const canonicalEnd = projectLatLng(map, corridor.end, zoom);
-    const deltaX = canonicalEnd.x - canonicalStart.x;
-    const deltaY = canonicalEnd.y - canonicalStart.y;
+      routeIds.length > 1 ? (routeIndex - (routeIds.length - 1) / 2) * spacing : 0;
+    const projectedStart = projectedPoints[index];
+    const projectedEnd = projectedPoints[index + 1];
+    const deltaX = projectedEnd.x - projectedStart.x;
+    const deltaY = projectedEnd.y - projectedStart.y;
     const segmentLength = Math.hypot(deltaX, deltaY) || 1;
 
     segmentOffsets.push(
