@@ -8,7 +8,7 @@ New Orleans RTA Live Map is a realtime transit map for New Orleans built with Vi
 
 ### Mobile
 
-![New Orleans RTA Live Map - Mobile](./public/screenshot-mobile.png)
+<img src="./public/screenshot-mobile.png" alt="Mobile screenshot" width="300"/>
 
 ## Features
 
