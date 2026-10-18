@@ -85,8 +85,8 @@ export function createGtfsReader(directory: string) {
     },
 
     /** Iterate a large table by column index without building row objects. */
-    each(fileName: string, onRow: (values: string[], column: Record<string, number>) => void) {
-      const { header, rows } = load(fileName);
+    each(fileName: string, onRow: (values: string[], column: Record<string, number>) => void, required = true) {
+      const { header, rows } = load(fileName, required);
       const column = Object.fromEntries(header.map((name, index) => [name, index]));
 
       for (const values of rows) {

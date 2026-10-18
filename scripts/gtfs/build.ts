@@ -43,7 +43,19 @@ const ROOT = process.cwd();
 const OUT_PUBLIC = path.join(ROOT, 'public', 'data');
 const OUT_SHARED = path.join(ROOT, 'shared', 'generated');
 
-const MODE_BY_ROUTE_TYPE: Record<string, Mode> = { '0': 'streetcar', '3': 'bus', '4': 'ferry' };
+/**
+ * GTFS route_type to the three modes the app draws. Covers the basic types
+ * and the extended (Google) ones, so a new kind of service in a future feed
+ * shows up as the nearest mode instead of silently disappearing.
+ */
+function modeFor(routeType: string | undefined): Mode | null {
+  const type = Number(routeType);
+  if (!Number.isFinite(type)) return null;
+  if (type === 0 || type === 5 || type === 12 || (type >= 900 && type < 1000)) return 'streetcar';
+  if (type === 4 || (type >= 1000 && type < 1300)) return 'ferry';
+  // Bus, trolleybus, coach, demand-responsive, and anything else on the road.
+  return 'bus';
+}
 const EXCLUDED_ROUTE = /test/i;
 /** Shape simplification for snapping and diagrams: well under GPS error. */
 const SHAPE_TOLERANCE_M = 1.5;
@@ -85,7 +97,7 @@ async function main() {
   // ---------------------------------------------------------------- routes
   const routeRows = gtfs
     .read('routes.txt')
-    .filter((route) => MODE_BY_ROUTE_TYPE[route.route_type!] && !EXCLUDED_ROUTE.test(route.route_long_name!))
+    .filter((route) => modeFor(route.route_type) && !EXCLUDED_ROUTE.test(route.route_long_name ?? ''))
     .sort((a, b) => compareRouteNames(a.route_short_name!, b.route_short_name!));
   const routeRowById = new Map(routeRows.map((row) => [row.route_id!, row]));
 
@@ -133,6 +145,7 @@ async function main() {
   // ---------------------------------------------------------------- shapes
   const rawShapes = new Map<string, { seq: number; point: LatLng }[]>();
 
+  // shapes.txt is optional in GTFS; trips without one get a shape from their stops below.
   gtfs.each('shapes.txt', (values, column) => {
     const shapeId = values[column.shape_id!]!;
     let points = rawShapes.get(shapeId);
@@ -144,7 +157,7 @@ async function main() {
       seq: Number(values[column.shape_pt_sequence!]),
       point: [Number(values[column.shape_pt_lat!]), Number(values[column.shape_pt_lon!])],
     });
-  });
+  }, false);
 
   const shapeById = new Map<string, LatLng[]>();
   for (const [shapeId, points] of rawShapes) {
@@ -173,7 +186,23 @@ async function main() {
 
   for (const trip of tripRows) {
     const stopTimes = stopTimesByTrip.get(trip.trip_id!);
-    if (!stopTimes || stopTimes.stops.length < 2 || !shapeById.has(trip.shape_id!)) continue;
+    if (!stopTimes || stopTimes.stops.length < 2) continue;
+
+    // No published shape: draw the trip stop to stop rather than dropping it.
+    if (!trip.shape_id || !shapeById.has(trip.shape_id)) {
+      const synthetic = `stops-${trip.route_id}-${hash(stopTimes.stops.join('>'))}`;
+      if (!shapeById.has(synthetic)) {
+        shapeById.set(
+          synthetic,
+          stopTimes.stops.map((stopId) => {
+            const stop = stopRowById.get(stopId);
+            return [Number(stop?.stop_lat), Number(stop?.stop_lon)] as LatLng;
+          }),
+        );
+        console.warn(`Trip ${trip.trip_id} (route ${trip.route_id}) has no shape; drawing it stop to stop.`);
+      }
+      trip.shape_id = synthetic;
+    }
 
     const directionId = Number(trip.direction_id || 0);
     const key = [trip.route_id, directionId, trip.shape_id, stopTimes.stops.join('>')].join('|');
@@ -297,7 +326,7 @@ async function main() {
     }
 
     trips.sort((a, b) => a[2] - b[2]);
-    const file: ScheduleFile = { pattern: id, profiles, trips };
+    const file: ScheduleFile = { pattern: id, feedVersion, profiles, trips };
     const json = JSON.stringify(file);
     scheduleBytes += json.length;
     fs.writeFileSync(path.join(OUT_PUBLIC, 'schedules', `${id}.json`), json);
@@ -372,7 +401,7 @@ async function main() {
       id: row.route_id!,
       shortName: row.route_short_name!,
       longName: row.route_long_name!.trim(),
-      mode: MODE_BY_ROUTE_TYPE[row.route_type!]!,
+      mode: modeFor(row.route_type)!,
       ...routeColors(row.route_color ?? '', index),
       patterns: [...patterns].sort((a, b) => b.tripCount - a.tripCount || b.stops.length - a.stops.length).map((pattern) => pattern.id),
       directions,
@@ -609,6 +638,16 @@ function minOf(values: string[]): string {
 
 function maxOf(values: string[]): string {
   return [...values].sort().at(-1) ?? '';
+}
+
+/** Short stable hash for synthetic ids (FNV-1a). */
+function hash(value: string): string {
+  let result = 0x811c9dc5;
+  for (let index = 0; index < value.length; index += 1) {
+    result ^= value.charCodeAt(index);
+    result = Math.imul(result, 0x01000193);
+  }
+  return (result >>> 0).toString(36);
 }
 
 function round(value: number, decimals: number): number {

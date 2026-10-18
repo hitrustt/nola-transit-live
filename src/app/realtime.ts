@@ -13,12 +13,19 @@
 
 import type { RealtimeSnapshot } from '../../shared/types.ts';
 import { REALTIME_FORMAT_VERSION } from '../../shared/types.ts';
+import { noteFeedVersion } from './data.ts';
 import { createStore } from './store.ts';
 
 export const POLL_INTERVAL_MS = 15_000;
 const MAX_BACKOFF_MS = 2 * 60_000;
 /** Older than this and predictions are shown as no longer live. */
 export const STALE_AFTER_MS = 90_000;
+/**
+ * NORTA's feed header normally advances every 30 s or so. If it has not moved
+ * in this long the feed itself is frozen, even though every poll succeeds.
+ */
+export const FEED_FROZEN_AFTER_MS = 3 * 60_000;
+const REQUEST_TIMEOUT_MS = 12_000;
 
 export interface RealtimeState {
   snapshot: RealtimeSnapshot | null;
@@ -57,14 +64,21 @@ async function poll() {
   if (document.visibilityState === 'hidden') return;
 
   controller?.abort();
-  controller = new AbortController();
+  const current = new AbortController();
+  controller = current;
   const requestedAt = Date.now();
+  // The next poll is scheduled only when this one ends, so a request stalled
+  // on a bad mobile connection must not be allowed to hang for minutes.
+  const timeout = setTimeout(
+    () => current.abort(new DOMException('The live data request timed out.', 'TimeoutError')),
+    REQUEST_TIMEOUT_MS,
+  );
 
   try {
     const response = await fetch(ENDPOINT, {
       headers: etag ? { 'If-None-Match': etag } : {},
       cache: 'no-store',
-      signal: controller.signal,
+      signal: current.signal,
     });
 
     const receivedAt = Date.now();
@@ -106,8 +120,12 @@ async function poll() {
       offline: false,
       upstreamStale: stale,
     });
+    // The server resolves trips against its own timetable; if that differs
+    // from ours, ours is out of date (or theirs is) and must be reloaded.
+    noteFeedVersion(snapshot.staticVersion);
     schedule(POLL_INTERVAL_MS);
   } catch (error) {
+    // Aborted because the tab was hidden or a newer poll started: not a failure.
     if ((error as Error).name === 'AbortError') return;
     failures += 1;
     realtimeStore.set((state) => ({
@@ -116,6 +134,8 @@ async function poll() {
       error: navigator.onLine ? ((error as Error).message || 'Live data is unavailable.') : null,
     }));
     schedule(Math.min(POLL_INTERVAL_MS * 2 ** (failures - 1), MAX_BACKOFF_MS));
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -161,7 +181,17 @@ export function serverNow(state: RealtimeState = realtimeStore.get()): number {
   return Date.now() - state.clockSkewMs;
 }
 
+/** NORTA is answering, but its feed has stopped advancing. */
+export function isFeedFrozen(state: RealtimeState, now = serverNow(state)): boolean {
+  return Boolean(state.snapshot) && now - state.snapshot!.feedTime > FEED_FROZEN_AFTER_MS;
+}
+
+/** Trip updates (predictions) are missing from the latest snapshot. */
+export function predictionsMissing(state: RealtimeState): boolean {
+  return Boolean(state.snapshot?.degraded.includes('trips'));
+}
+
 /** True when the snapshot is recent enough to call its predictions live. */
 export function isFresh(state: RealtimeState, now = serverNow(state)): boolean {
-  return state.confirmedAt !== null && now - state.confirmedAt < STALE_AFTER_MS;
+  return state.confirmedAt !== null && now - state.confirmedAt < STALE_AFTER_MS && !isFeedFrozen(state, now);
 }

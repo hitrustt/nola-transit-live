@@ -69,6 +69,7 @@ export const network = indexNetwork(networkFile);
 /** Trips at 8:00, 8:15 and 8:30, five minutes between stops. */
 export const schedule: ScheduleFile = {
   pattern: 'P1',
+  feedVersion: 'TEST',
   profiles: [[0, 300, 600, 900]],
   trips: [
     ['T800', 'WK', 8 * 3600, 0],

@@ -4,6 +4,7 @@ import { navigate } from '../app/router.ts';
 import { ago, clockTime, countdown, modeNoun } from '../lib/format.ts';
 import type { Network } from '../lib/network.ts';
 import { STALE_POSITION_MS, upcomingStopIndex } from '../lib/vehicles.ts';
+import { alignToPattern } from '../lib/arrivals.ts';
 import { EmptyState, ViewHeader } from '../ui/common.tsx';
 import { LiveMark } from '../ui/Icon.tsx';
 import { RouteBadge } from '../ui/RouteBadge.tsx';
@@ -44,7 +45,15 @@ export function VehicleView({ network, vehicleId }: { network: Network; vehicleI
   const age = now - vehicle.timestamp;
   const pattern = vehicle.pattern;
   const fromIndex = upcomingStopIndex(vehicle) ?? 0;
-  const predicted = new Map((trip?.stops ?? []).map(([stopId, seconds, skipped]) => [stopId, { time: seconds === null ? null : base + seconds * 1000, skipped: skipped === 1 }]));
+  // Keyed by position in the trip, not stop id: a loop visits its hub twice.
+  const predicted = new Map<number, { time: number | null; skipped: boolean }>();
+  if (trip && pattern) {
+    alignToPattern(trip.stops.map(([stopId]) => stopId), pattern.stops).forEach((index, order) => {
+      if (index === -1) return;
+      const [, seconds, skipped] = trip.stops[order]!;
+      predicted.set(index, { time: seconds === null ? null : base + seconds * 1000, skipped: skipped === 1 });
+    });
+  }
   const upcoming = pattern ? pattern.stops.slice(fromIndex).map((stopId, offset) => ({ stopId, index: fromIndex + offset })) : [];
 
   return (
@@ -67,22 +76,25 @@ export function VehicleView({ network, vehicleId }: { network: Network; vehicleI
       </dl>
 
       {trip?.status === 'canceled' && <p className="notice notice--alert">RTA has canceled the rest of this trip.</p>}
+      {!live && realtime.snapshot && (
+        <p className="section__note">Live data isn’t updating, so arrival times for this trip are hidden. The position shown is the last one reported.</p>
+      )}
 
       {upcoming.length ? (
         <ol className="line line--compact" style={{ '--route-color': vehicle.route.color } as React.CSSProperties} aria-label="Next stops">
           {upcoming.map(({ stopId, index }) => {
             const stop = network.stopsById.get(stopId);
             if (!stop) return null;
-            const prediction = predicted.get(stopId);
+            const prediction = predicted.get(index);
             const skipped = prediction?.skipped ?? false;
             return (
               <li key={`${stopId}-${index}`} className={`line__item${skipped ? ' is-skipped' : ''}`}>
                 <button type="button" className="line__stop" onClick={() => navigate({ name: 'stop', stopId })}>
                   <span className="line__name">{stop.name}</span>
                   {skipped && <span className="line__note">Not served on this trip</span>}
-                  {!skipped && prediction?.time && (
+                  {!skipped && live && prediction?.time && (
                     <span className="line__next" title={clockTime(prediction.time)}>
-                      {live && <LiveMark />}
+                      <LiveMark />
                       {formatPrediction(prediction.time, now)}
                     </span>
                   )}

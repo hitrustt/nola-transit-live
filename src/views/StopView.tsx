@@ -9,6 +9,7 @@ import type { Network, Stop } from '../lib/network.ts';
 import { useSchedules } from '../app/data.ts';
 import { AlertNotice, DetourNotice, EmptyState, IconToggle, RouteBadges, ShareButton, Skeleton, ViewHeader } from '../ui/common.tsx';
 import { DepartureBoard } from '../ui/Departures.tsx';
+import { Icon } from '../ui/Icon.tsx';
 
 export function StopHeader({ network, stop }: { network: Network; stop: Stop | undefined }) {
   const preferences = usePreferences();
@@ -49,7 +50,7 @@ export function StopView({ network, stopId }: { network: Network; stopId: string
 }
 
 function StopDepartures({ network, stop }: { network: Network; stop: Stop }) {
-  const { departures, loading, live } = useDepartures(network, stop.id);
+  const { departures, loading, failed, live, retry } = useDepartures(network, stop.id);
   const now = useNow();
   const { alerts, detours } = useServiceChanges({ stopId: stop.id, routeIds: stop.routes });
 
@@ -57,6 +58,18 @@ function StopDepartures({ network, stop }: { network: Network; stop: Stop }) {
     <div className="stop">
       <DetourNotice network={network} detours={detours} stopId={stop.id} />
       <AlertNotice alerts={alerts} />
+      {failed && (
+        <section className="notice notice--alert" aria-label="Timetable unavailable">
+          <Icon name="offline" className="notice__icon" />
+          <div>
+            <p className="notice__title">Part of the timetable didn’t download</p>
+            <p className="notice__body">Some scheduled times may be missing from this list.</p>
+            <button type="button" className="text-button" onClick={retry}>
+              Try again
+            </button>
+          </div>
+        </section>
+      )}
       {loading && !departures.length ? (
         <Skeleton rows={5} />
       ) : departures.length ? (

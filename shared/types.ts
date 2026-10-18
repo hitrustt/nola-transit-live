@@ -111,6 +111,8 @@ export interface ServiceRecord {
 
 export interface ScheduleFile {
   pattern: string;
+  /** Must equal network.json's feed.version; a mismatch means mixed data. */
+  feedVersion: string;
   /**
    * Distinct running-time profiles: seconds from the trip's first stop to each
    * stop. Most trips on a pattern share a handful of these.

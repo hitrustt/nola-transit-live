@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { RealtimeAlert, RealtimeDetour } from '../../shared/types.ts';
 import { useNow, useRealtime, useVehicles } from '../app/hooks.ts';
-import { isFresh, refreshRealtime } from '../app/realtime.ts';
+import { isFeedFrozen, isFresh, predictionsMissing, refreshRealtime } from '../app/realtime.ts';
 import { goBack, navigate } from '../app/router.ts';
 import { ago, clockTime, vehicleCountLabel } from '../lib/format.ts';
 import type { Network } from '../lib/network.ts';
@@ -82,11 +82,17 @@ export function LiveStatus({ network }: { network: Network }) {
   } else if (!realtime.snapshot && !realtime.error) {
     tone = 'idle';
     message = 'Connecting to live data…';
+  } else if (realtime.snapshot && isFeedFrozen(realtime, now)) {
+    tone = 'warn';
+    message = `RTA’s live feed hasn’t changed since ${clockTime(realtime.snapshot.feedTime)}. Times shown are scheduled.`;
   } else if (!fresh) {
     tone = 'warn';
     message = realtime.confirmedAt
       ? `Live data stopped updating ${ago(realtime.confirmedAt, now)}. Times shown are scheduled.`
       : `${realtime.error ?? 'Live data is unavailable.'} Times shown are scheduled.`;
+  } else if (predictionsMissing(realtime)) {
+    tone = 'warn';
+    message = `RTA’s arrival predictions are unavailable right now. Vehicles are live; times shown are scheduled.`;
   } else {
     message = (
       <>
@@ -209,4 +215,3 @@ export function truncate(text: string, length: number): string {
   return text.length > length ? `${text.slice(0, length - 1).trimEnd()}…` : text;
 }
 
-export { clockTime };

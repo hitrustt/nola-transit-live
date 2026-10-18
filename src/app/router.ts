@@ -27,7 +27,7 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 export function parseLocation(pathname: string, search: string): View {
   const path = pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname;
   const params = new URLSearchParams(search);
-  const [, section, id] = path.split('/').map(decodeURIComponent);
+  const [, section, id] = path.split('/').map(safeDecode);
 
   if (section === 'stop' && id) return { name: 'stop', stopId: id };
   if (section === 'route' && id) {
@@ -46,6 +46,15 @@ export function parseLocation(pathname: string, search: string): View {
   }
 
   return { name: 'home' };
+}
+
+/** A truncated or hand-edited link must not throw before the app renders. */
+function safeDecode(part: string): string {
+  try {
+    return decodeURIComponent(part);
+  } catch {
+    return part;
+  }
 }
 
 export function viewToPath(view: View): string {

@@ -151,4 +151,13 @@ describe('alignToPattern', () => {
     expect(alignToPattern(['X', 'Y'], loop)).toEqual([1, 2]);
     expect(alignToPattern(['Q', 'Z'], loop)).toEqual([-1, 5]);
   });
+
+  it('matches a lone terminal prediction on a loop to the end, not the start', () => {
+    // Route 45 / 68 style: the loop starts and ends at the same hub.
+    const loop = ['HUB', 'X', 'Y', 'Z', 'HUB'];
+    expect(alignToPattern(['HUB'], loop)).toEqual([4]);
+    expect(alignToPattern(['Z', 'HUB'], loop)).toEqual([3, 4]);
+    // A full-trip update still maps the first stop to the start.
+    expect(alignToPattern(['HUB', 'X', 'Y', 'Z', 'HUB'], loop)).toEqual([0, 1, 2, 3, 4]);
+  });
 });

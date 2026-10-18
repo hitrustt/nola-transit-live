@@ -65,7 +65,7 @@ export function App() {
       <div className="splash" role="alert">
         <span className="tile tile--brand">NOLA</span>
         <p>{state.message}</p>
-        <button type="button" className="button" onClick={loadNetwork}>
+        <button type="button" className="button" onClick={() => void loadNetwork()}>
           Try again
         </button>
       </div>
@@ -119,7 +119,7 @@ function Shell({ network }: { network: Network }) {
 
   return (
     <div className={`app${compact ? ' app--compact' : ''}`}>
-      <a className="skip-link" href="#panel-content">
+      <a className="skip-link" href="#panel-content" onClick={() => setSnap('full')}>
         Skip to departures and routes
       </a>
       <MapView ref={mapRef} network={network} view={view} theme={theme} padding={padding} compact={compact} />

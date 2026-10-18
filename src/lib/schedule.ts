@@ -41,8 +41,11 @@ export function scheduledCalls(
 
     for (const { date, start } of days) {
       for (const [tripId, serviceId, tripStartSeconds, profileIndex] of schedule.trips) {
+        const offset = schedule.profiles[profileIndex]?.[index];
+        // Never trust a file that doesn't fit the pattern (e.g. mixed data versions).
+        if (offset === undefined) continue;
         const profile = schedule.profiles[profileIndex]!;
-        const time = start + (tripStartSeconds + profile[index]!) * 1000;
+        const time = start + (tripStartSeconds + offset) * 1000;
         if (time < from || time > to) continue;
         if (!isServiceActive(network.services[serviceId], date)) continue;
 

@@ -3,7 +3,7 @@ import type { RealtimeAlert, RealtimeDetour } from '../../shared/types.ts';
 import { departuresForStop, type Departure } from '../lib/arrivals.ts';
 import type { Network } from '../lib/network.ts';
 import { trackVehicles, type TrackedVehicle } from '../lib/vehicles.ts';
-import { useSchedules } from './data.ts';
+import { retrySchedules, useSchedules } from './data.ts';
 import { isFresh, realtimeStore, serverNow } from './realtime.ts';
 import { createStore, useStore } from './store.ts';
 
@@ -68,6 +68,9 @@ export function useVehicleSync(network: Network | null) {
 export interface DepartureBoard {
   departures: Departure[];
   loading: boolean;
+  /** Some timetables failed to download; the list may be incomplete. */
+  failed: boolean;
+  retry: () => void;
   /** Realtime is current enough to trust "live" labels. */
   live: boolean;
 }
@@ -77,7 +80,7 @@ export function useDepartures(network: Network, stopId: string, horizonMs?: numb
     () => [...new Set((network.visitsByStop.get(stopId) ?? []).map((visit) => visit.pattern.id))],
     [network, stopId],
   );
-  const { schedules, loading, version } = useSchedules(patternIds);
+  const { schedules, loading, failed, version } = useSchedules(patternIds);
   const realtime = useRealtime();
   const now = useNow(10_000);
   const live = isFresh(realtime, now);
@@ -90,7 +93,7 @@ export function useDepartures(network: Network, stopId: string, horizonMs?: numb
     [network, stopId, version, realtime.snapshot, live, now, horizonMs],
   );
 
-  return { departures, loading, live };
+  return { departures, loading, failed, live, retry: () => retrySchedules(patternIds) };
 }
 
 // ---------------------------------------------------------------------------

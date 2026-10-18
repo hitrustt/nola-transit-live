@@ -33,7 +33,19 @@ export interface RealtimeHandlerOptions {
   now?: () => number;
 }
 
-let inFlight: Promise<string> | null = null;
+interface Build {
+  promise: Promise<string>;
+  startedAt: number;
+}
+
+/**
+ * The snapshot build in progress, shared by concurrent requests in this
+ * isolate. It is owned by the build, not by any request: on Workers a promise
+ * created by a request that is then cancelled can be abandoned, so the build
+ * is handed to waitUntil and every waiter also has its own timeout.
+ */
+let inFlight: Build | null = null;
+const BUILD_TIMEOUT_MS = 15_000;
 
 export async function handleRealtimeRequest(request: Request, options: RealtimeHandlerOptions): Promise<Response> {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -44,27 +56,51 @@ export async function handleRealtimeRequest(request: Request, options: RealtimeH
   const key = new Request(CACHE_KEY);
   const cached = options.cache ? await options.cache.match(key).catch(() => undefined) : undefined;
   const cachedAt = Number(cached?.headers.get('x-fetched-at') ?? 0);
-  const cachedFeedTime = cached?.headers.get('x-feed-time') ?? '';
+  const cachedVersion = cached?.headers.get('x-feed-time') ?? '';
+  const cachedComplete = cached?.headers.get('x-degraded') !== '1';
+  const cachedUsable = Boolean(cached) && now() - cachedAt < STALE_LIMIT_MS;
 
   if (cached && now() - cachedAt < FRESH_MS) {
-    return respond(request, await cached.text(), cachedFeedTime, false);
+    return respond(request, await cached.text(), cachedVersion, false);
   }
 
   try {
-    inFlight ??= buildSnapshot({ fetch: options.fetch, tripIndex: options.tripIndex, now }).then((snapshot) =>
-      JSON.stringify(snapshot),
-    );
-    const body = await inFlight;
-    const { fetchedAt, feedTime, staticVersion } = JSON.parse(body) as { fetchedAt: number; feedTime: number; staticVersion: string };
-    const version = `${feedTime}-${staticVersion}`;
+    if (!inFlight || now() - inFlight.startedAt > BUILD_TIMEOUT_MS) {
+      const promise = buildSnapshot({ fetch: options.fetch, tripIndex: options.tripIndex, now }).then((snapshot) =>
+        JSON.stringify(snapshot),
+      );
+      const build: Build = { promise, startedAt: now() };
+      inFlight = build;
+      const settled = promise.then(
+        () => undefined,
+        () => undefined,
+      );
+      void settled.then(() => {
+        if (inFlight === build) inFlight = null;
+      });
+      options.waitUntil?.(settled);
+    }
+
+    const body = await withTimeout(inFlight.promise, BUILD_TIMEOUT_MS);
+    const parsed = JSON.parse(body) as { fetchedAt: number; feedTime: number; staticVersion: string; degraded: string[] };
+    const version = `${parsed.feedTime}-${parsed.staticVersion}`;
+    const degraded = parsed.degraded.length > 0;
+
+    // One feed failing (say trip updates) yields a partial snapshot with no
+    // predictions. A recent complete snapshot is the better answer: serve it,
+    // marked stale, and keep it in the cache.
+    if (degraded && cached && cachedUsable && cachedComplete) {
+      return respond(request, await cached.text(), cachedVersion, true);
+    }
 
     if (options.cache) {
       const stored = new Response(body, {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': `public, max-age=${STALE_LIMIT_MS / 1000}`,
-          'x-fetched-at': String(fetchedAt),
+          'x-fetched-at': String(parsed.fetchedAt),
           'x-feed-time': version,
+          'x-degraded': degraded ? '1' : '0',
         },
       });
       const write = options.cache.put(key, stored).catch(() => undefined);
@@ -74,8 +110,8 @@ export async function handleRealtimeRequest(request: Request, options: RealtimeH
 
     return respond(request, body, version, false);
   } catch (error) {
-    if (cached && now() - cachedAt < STALE_LIMIT_MS) {
-      return respond(request, await cached.text(), cachedFeedTime, true);
+    if (cached && cachedUsable) {
+      return respond(request, await cached.text(), cachedVersion, true);
     }
 
     const message = error instanceof Error ? error.message : String(error);
@@ -84,15 +120,17 @@ export async function handleRealtimeRequest(request: Request, options: RealtimeH
       error instanceof UpstreamError ? 502 : 500,
       { 'Retry-After': '15' },
     );
-  } finally {
-    inFlight = null;
   }
 }
 
-/**
- * The ETag is NORTA's own feed timestamp, so a client that already has this
- * version of the feed gets a 304 even though the edge refetched it.
- */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new UpstreamError('Timed out waiting for NORTA')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 function respond(request: Request, body: string, version: string, stale: boolean): Response {
   const etag = `"${version}"`;
   const headers: Record<string, string> = {

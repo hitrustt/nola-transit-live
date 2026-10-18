@@ -33,16 +33,18 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//, /^\/data\//],
         runtimeCaching: [
           {
-            // The network and route lines: show the cached copy instantly, refresh behind.
+            // The network and route lines: the current copy when online (so a
+            // new timetable takes effect), the saved one when offline or slow.
             urlPattern: ({ url }) => url.pathname === '/data/network.json' || url.pathname === '/data/route-lines.json',
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'network-data' },
+            handler: 'NetworkFirst',
+            options: { cacheName: 'network-data', networkTimeoutSeconds: 4, expiration: { maxEntries: 6 } },
           },
           {
-            // Timetables, so a saved stop still shows scheduled times offline.
+            // Timetables are requested with ?v=<feed version>, so a cached file
+            // can only ever be served to the network it belongs to.
             urlPattern: ({ url }) => url.pathname.startsWith('/data/schedules/'),
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'schedules', expiration: { maxEntries: 120, maxAgeSeconds: 14 * 86400 } },
+            handler: 'CacheFirst',
+            options: { cacheName: 'schedules', expiration: { maxEntries: 200, maxAgeSeconds: 30 * 86400 } },
           },
           {
             urlPattern: ({ url }) => url.origin === 'https://tiles.openfreemap.org',

@@ -200,8 +200,30 @@ export function resolvePrediction(
  * Map each realtime stop id to its index in the pattern, walking both in
  * travel order so a loop that visits a stop twice matches the right visit.
  * Unmatched stops get -1.
+ *
+ * Trip updates list the remaining stops through the end of the trip, so when
+ * the last realtime stop is the pattern's last stop the lists are aligned
+ * from the end. That matters on loops that end where they start: a lone
+ * "terminal" prediction is the arrival at the end, not the departure from
+ * the start — matching from the front made an already-departed bus look
+ * like it was about to leave.
  */
 export function alignToPattern(realtimeStops: readonly string[], patternStops: readonly string[]): number[] {
+  if (realtimeStops.length && realtimeStops.at(-1) === patternStops.at(-1)) {
+    const result: number[] = new Array(realtimeStops.length).fill(-1);
+    let cursor = patternStops.length - 1;
+    for (let order = realtimeStops.length - 1; order >= 0; order -= 1) {
+      for (let index = cursor; index >= 0; index -= 1) {
+        if (patternStops[index] === realtimeStops[order]) {
+          result[order] = index;
+          cursor = index - 1;
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
   const result: number[] = [];
   let cursor = 0;
 
