@@ -1,0 +1,6 @@
+dist
+dev-dist
+.cache
+public/data
+shared/generated
+package-lock.json
