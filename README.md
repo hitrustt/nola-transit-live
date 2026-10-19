@@ -68,6 +68,9 @@ npm run cf:dev     # run the Cloudflare Pages build locally
 npm run cf:deploy  # build and deploy
 ```
 
+Pushing to `main` also deploys automatically through GitHub Actions, once the
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets are set.
+
 ## Data
 
 The timetable is built from RTA's published GTFS feed:

@@ -1,0 +1,43 @@
+# Deploys the site to Cloudflare Pages whenever main changes, including the
+# weekly timetable refresh. Needs two repository secrets:
+#   CLOUDFLARE_API_TOKEN   a token with the "Cloudflare Pages: Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID  your Cloudflare account id
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Commits made by the refresh workflow don't trigger `push`, so follow it too.
+  workflow_run:
+    workflows: [Refresh timetable]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN is not set; skipping deploy. Add it under Settings > Secrets and variables > Actions."
+            exit 0
+          fi
+          npx wrangler pages deploy dist --project-name nola-transit-live --branch main
