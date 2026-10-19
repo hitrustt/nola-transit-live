@@ -40,4 +40,6 @@ jobs:
             echo "::warning::CLOUDFLARE_API_TOKEN is not set; skipping deploy. Add it under Settings > Secrets and variables > Actions."
             exit 0
           fi
-          npx wrangler pages deploy dist --project-name nola-transit-live --branch main
+          # The project's production branch is named "nola-transit-live"; any other
+          # branch name publishes a preview instead of the live site.
+          npx wrangler pages deploy dist --project-name nola-transit-live --branch nola-transit-live

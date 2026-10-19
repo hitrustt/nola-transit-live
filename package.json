@@ -21,7 +21,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "cf:dev": "wrangler pages dev dist",
-    "cf:deploy": "npm run build && wrangler pages deploy dist",
+    "cf:deploy": "npm run build && wrangler pages deploy dist --branch nola-transit-live",
     "icons": "node scripts/render-icons.mjs",
     "screenshots": "node scripts/screenshots.mjs"
   },
